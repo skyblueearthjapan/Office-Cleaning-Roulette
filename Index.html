@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base target="_top">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:#fffaf3;font-family:'Noto Sans JP',sans-serif;display:flex;flex-direction:column}
+  @keyframes spin-confetti{0%{transform:translateY(-40px) rotate(0deg);opacity:1}100%{transform:translateY(720px) rotate(680deg);opacity:0}}
+  @keyframes lock-pop{0%{transform:scale(.6);opacity:.2}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+  /* header */
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding:26px 52px;background:#138a7e;flex-wrap:wrap;gap:14px}
+  .hdr-left{display:flex;align-items:center;gap:18px}
+  .hdr-logo{background:#fff;padding:9px 16px;border-radius:9px;display:flex;align-items:center;font-weight:900;color:#138a7e;font-size:15px;letter-spacing:.04em}
+  .hdr-title{font-weight:900;font-size:26px;color:#fff;letter-spacing:.02em}
+  .hdr-badge{display:flex;align-items:center;gap:11px;padding:11px 22px;border-radius:999px;background:rgba(255,255,255,.18)}
+  .day{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-weight:900;font-size:15px}
+  .hdr-badge .lbl{font-weight:700;font-size:16px;color:#fff;white-space:nowrap}
+
+  /* body */
+  .wrap{flex:1;display:flex;flex-wrap:wrap;gap:64px;padding:48px 60px;align-items:center;justify-content:center;position:relative;max-width:1580px;margin:0 auto;width:100%}
+
+  /* wheel */
+  .wheel-col{flex:none;display:flex;flex-direction:column;align-items:center;gap:34px;position:relative;z-index:2}
+  .wheel-box{position:relative;width:640px;height:640px;max-width:88vw;max-height:88vw}
+  .ring{position:absolute;inset:0;border-radius:50%;box-shadow:0 22px 54px rgba(0,0,0,.16),inset 0 0 0 3px #f0e2cb}
+  .ring .seg-label{position:absolute;top:26px;left:50%;width:150px;text-align:center;white-space:nowrap;font-weight:900;font-size:18px;color:#5a3d1f;transform:translateX(-50%);transform-origin:center}
+  .disc{position:absolute;top:70px;left:70px;width:500px;height:500px;border-radius:50%;box-shadow:0 10px 30px rgba(0,0,0,.24),inset 0 0 0 7px #fff;will-change:transform}
+  .disc .seg-label{position:absolute;top:40px;left:50%;width:120px;text-align:center;font-weight:900;font-size:29px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.4);transform-origin:center}
+  .marker{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:19px solid transparent;border-right:19px solid transparent;border-top:32px solid #e8654a;z-index:6;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+  .spin-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:158px;height:158px;border-radius:50%;border:10px solid #fff;background:#e8654a;color:#fff;font-family:inherit;font-weight:900;font-size:28px;letter-spacing:.04em;cursor:pointer;z-index:7;box-shadow:0 9px 28px rgba(232,101,74,.45)}
+  .spin-center:disabled,.spin-btn:disabled{opacity:.55;cursor:not-allowed}
+  .spin-btn{display:flex;align-items:center;gap:12px;padding:19px 64px;border-radius:999px;border:none;background:#e8654a;color:#fff;font-family:inherit;font-weight:900;font-size:23px;cursor:pointer;box-shadow:0 8px 20px rgba(232,101,74,.35)}
+  .spin-btn .ico{font-size:24px}
+
+  /* result */
+  .result-col{flex:none;width:640px;max-width:92vw;display:flex;flex-direction:column;gap:13px;position:relative;z-index:2}
+  .result-head{font-weight:900;font-size:24px;color:#3a2f24;margin-bottom:6px}
+  .row{display:flex;align-items:center;gap:20px;padding:19px 28px;border-radius:18px;background:#fff;border:2px solid #f3e6d6;box-shadow:0 3px 8px rgba(0,0,0,.05)}
+  .row .num{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#e8654a;color:#fff;font-weight:900;font-size:19px;flex:none}
+  .row .place{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;font-size:23px;color:#3a2f24}
+  .row .arrow{color:#d8c4ad;font-size:25px}
+  .row .staff-done{min-width:150px;text-align:center;padding:12px 22px;border-radius:999px;font-weight:900;font-size:27px;color:#fff;background:#e8654a;box-shadow:0 3px 10px rgba(232,101,74,.32);animation:lock-pop .35s ease}
+  .row .staff-idle{min-width:150px;text-align:center;padding:12px 22px;border-radius:999px;font-weight:900;font-size:27px;color:#c2b6a4;background:#f7efe4}
+
+  .confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3}
+  .confetti span{position:absolute;top:0;width:12px;height:18px;border-radius:2px}
+
+  .state-msg{width:100%;text-align:center;padding:40px;font-weight:700;font-size:20px;color:#8a7a66}
+  .err{color:#c0392b}
+</style>
+</head>
+<body>
+
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">LINE WORKS</div>
+      <div class="hdr-title">掃除ルーレット 🧹</div>
+    </div>
+    <div class="hdr-badge">
+      <span class="day" style="background:#f2a93b;color:#3a2400">火</span>
+      <span class="day" style="background:#5bbf8f;color:#06301f">木</span>
+      <span class="lbl">毎週この曜日は掃除デー！</span>
+    </div>
+  </div>
+
+  <div class="wrap" id="wrap">
+    <div class="state-msg" id="loading">読み込み中…</div>
+  </div>
+
+<script>
+  // デザインのセグメント配色（スタッフ円盤・結果ピル用）
+  var COLORS = ['#e8654a', '#f2a93b', '#5bbf8f', '#3aa6c9', '#6d7fd6', '#b76fd0', '#ef7fa6'];
+
+  var places = [];
+  var staff = [];
+  var spinning = false;
+  var rotation = 0;        // 累積回転角
+  var discEl = null;       // 回転する内側円盤
+  var lastResult = null;   // [{place, staff}, ...]
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // 掃除場所ごとに担当スタッフを割り当てる。
+  // スタッフが場所より少ない場合は循環、多い場合は先頭から使う。
+  function assign() {
+    var order = shuffle(staff);
+    return places.map(function (p, i) {
+      return { place: p, staff: order.length ? order[i % order.length] : 'ー' };
+    });
+  }
+
+  // 円盤の conic-gradient を組み立てる。先頭セグメントが真上（マーカー位置）に来るよう
+  // 半セグメント分手前から開始する。
+  function conicFor(n) {
+    var seg = 360 / n;
+    var stops = [];
+    for (var i = 0; i < n; i++) {
+      var c = COLORS[i % COLORS.length];
+      stops.push(c + ' ' + (i * seg) + 'deg ' + ((i + 1) * seg) + 'deg');
+    }
+    return 'conic-gradient(from ' + (-seg / 2) + 'deg,' + stops.join(',') + ')';
+  }
+
+  // 円周上にラベルを配置する div を作る。
+  function placeLabels(container, labels, className, counterRotate) {
+    var n = labels.length;
+    var seg = 360 / n;
+    labels.forEach(function (text, i) {
+      var slot = document.createElement('div');
+      slot.style.position = 'absolute';
+      slot.style.inset = '0';
+      slot.style.transform = 'rotate(' + (i * seg) + 'deg)';
+      var label = document.createElement('div');
+      label.className = className;
+      label.textContent = text;
+      // 内側ラベルは円盤回転に対して水平を保つため逆回転をかける
+      label.style.transform = 'translateX(-50%)' + (counterRotate ? ' rotate(' + (-i * seg) + 'deg)' : '');
+      slot.appendChild(label);
+      container.appendChild(slot);
+    });
+  }
+
+  function buildUI() {
+    var wrap = document.getElementById('wrap');
+    wrap.innerHTML = '';
+
+    if (!places.length) {
+      wrap.innerHTML = '<div class="state-msg err">「掃除場所」シートに掃除場所が登録されていません。<br>スプレッドシートを編集してから再読み込みしてください。</div>';
+      return;
+    }
+
+    // confetti placeholder
+    var confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.id = 'confetti';
+    confetti.style.display = 'none';
+    wrap.appendChild(confetti);
+
+    // ===== wheel column =====
+    var col = document.createElement('div');
+    col.className = 'wheel-col';
+
+    var box = document.createElement('div');
+    box.className = 'wheel-box';
+
+    // outer ring (掃除場所, 固定)。クリーム/ベージュの交互セグメント。
+    var ringSeg = 360 / places.length;
+    var ring = document.createElement('div');
+    ring.className = 'ring';
+    ring.style.background = 'repeating-conic-gradient(from ' + (-ringSeg / 2) + 'deg,'
+      + '#fff7ec 0deg ' + (ringSeg - 0.8) + 'deg,'
+      + '#f0e2cb ' + (ringSeg - 0.8) + 'deg ' + ringSeg + 'deg)';
+    placeLabels(ring, places, 'seg-label', false);
+    box.appendChild(ring);
+
+    // inner disc (スタッフ, 回転)
+    discEl = document.createElement('div');
+    discEl.className = 'disc';
+    discEl.style.background = conicFor(places.length);
+    // 初期表示はスタッフをそのまま（未確定）
+    var initialStaff = places.map(function (p, i) {
+      return staff.length ? staff[i % staff.length] : 'ー';
+    });
+    placeLabels(discEl, initialStaff, 'seg-label', true);
+    box.appendChild(discEl);
+
+    // marker
+    var marker = document.createElement('div');
+    marker.className = 'marker';
+    box.appendChild(marker);
+
+    // center spin button
+    var center = document.createElement('button');
+    center.className = 'spin-center';
+    center.id = 'spinCenter';
+    center.textContent = 'まわす';
+    center.onclick = spin;
+    box.appendChild(center);
+
+    col.appendChild(box);
+
+    var btn = document.createElement('button');
+    btn.className = 'spin-btn';
+    btn.id = 'spinBtn';
+    btn.innerHTML = '<span class="ico">🔄</span>ルーレットを回す';
+    btn.onclick = spin;
+    col.appendChild(btn);
+
+    wrap.appendChild(col);
+
+    // ===== result column =====
+    var res = document.createElement('div');
+    res.className = 'result-col';
+    var head = document.createElement('div');
+    head.className = 'result-head';
+    head.textContent = '＼ 今日の担当はこちら ／';
+    res.appendChild(head);
+
+    var list = document.createElement('div');
+    list.id = 'resultList';
+    list.style.display = 'flex';
+    list.style.flexDirection = 'column';
+    list.style.gap = '13px';
+    res.appendChild(list);
+    wrap.appendChild(res);
+
+    renderRows(null);
+  }
+
+  function renderRows(result) {
+    var list = document.getElementById('resultList');
+    list.innerHTML = '';
+    places.forEach(function (p, i) {
+      var row = document.createElement('div');
+      row.className = 'row';
+
+      var num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = String(i + 1);
+
+      var place = document.createElement('span');
+      place.className = 'place';
+      place.textContent = p;
+
+      var arrow = document.createElement('span');
+      arrow.className = 'arrow';
+      arrow.textContent = '→';
+
+      var staffEl = document.createElement('span');
+      if (result) {
+        staffEl.className = 'staff-done';
+        staffEl.style.background = COLORS[i % COLORS.length];
+        staffEl.style.boxShadow = '0 3px 10px rgba(0,0,0,.18)';
+        staffEl.textContent = result[i].staff;
+      } else {
+        staffEl.className = 'staff-idle';
+        staffEl.textContent = 'ー';
+      }
+
+      row.appendChild(num);
+      row.appendChild(place);
+      row.appendChild(arrow);
+      row.appendChild(staffEl);
+      list.appendChild(row);
+    });
+  }
+
+  function setSpinDisabled(v) {
+    var a = document.getElementById('spinBtn');
+    var b = document.getElementById('spinCenter');
+    if (a) a.disabled = v;
+    if (b) b.disabled = v;
+  }
+
+  function showConfetti() {
+    var c = document.getElementById('confetti');
+    if (!c) return;
+    var lefts = [10, 22, 34, 46, 58, 70, 82, 16, 52, 64, 76, 88];
+    c.innerHTML = '';
+    lefts.forEach(function (left, i) {
+      var s = document.createElement('span');
+      s.style.left = left + '%';
+      s.style.background = COLORS[i % COLORS.length];
+      s.style.animation = 'spin-confetti ' + (1.7 + (i % 5) * 0.1) + 's ease-in ' + (i * 0.03) + 's forwards';
+      c.appendChild(s);
+    });
+    c.style.display = 'block';
+  }
+
+  function spin() {
+    if (spinning || !places.length) return;
+    spinning = true;
+    setSpinDisabled(true);
+    document.getElementById('confetti').style.display = 'none';
+
+    var result = assign();
+    lastResult = result;
+
+    // 内側円盤のスタッフ表示を結果に差し替える
+    discEl.innerHTML = '';
+    placeLabels(discEl, result.map(function (r) { return r.staff; }), 'seg-label', true);
+
+    var turns = 5 + Math.floor(Math.random() * 3);
+    rotation += 360 * turns;
+    discEl.style.transition = 'transform 4.4s cubic-bezier(.16,.7,.18,1)';
+    discEl.style.transform = 'rotate(' + rotation + 'deg)';
+
+    setTimeout(function () {
+      spinning = false;
+      setSpinDisabled(false);
+      renderRows(result);
+      showConfetti();
+      // 結果を履歴シートへ保存（失敗してもUIは継続）
+      google.script.run
+        .withFailureHandler(function () {})
+        .saveResult(result);
+    }, 4500);
+  }
+
+  function onData(data) {
+    places = (data && data.places) || [];
+    staff = (data && data.staff) || [];
+    buildUI();
+  }
+
+  function onError(err) {
+    document.getElementById('wrap').innerHTML =
+      '<div class="state-msg err">データの読み込みに失敗しました。<br>' + (err && err.message ? err.message : err) + '</div>';
+  }
+
+  google.script.run.withSuccessHandler(onData).withFailureHandler(onError).getMasterData();
+</script>
+</body>
+</html>
